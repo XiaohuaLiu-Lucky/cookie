@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>cookie记录拖拽位置</title>
+    <style>
+        .demo {
+            position: absolute;
+            left: 0px;
+            top: 0px;
+            width: 100px;
+            height: 100px;
+            background-color: darkorchid;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="demo"></div>
+    <script>
+        // Cookie的增删改查
+        var manageCookie = {
+            setCookie: function(name, value, date, flag) {
+                if (flag === 'expires') {
+                    // 设置多少天后过期
+                    var oDate = new Date();
+                    oDate.setDate(oDate.getDate() + date);
+                    document.cookie = name + '=' + value + ';expires=' + oDate;
+                } else if (flag === 'max-age') {
+                    document.cookie = name + '=' + value + ';max-age=' + date;
+                }
+                return this;
+            },
+            removeCookie: function(name) {
+                // 想让哪一个cookie过期
+                return this.setCookie(name, '', -1, 'max-age');
+            },
+            // 想要拿到某一个cookie的值,来做一些处理
+            getCookie: function(name, callback) {
+                var allCookieArr = document.cookie.split('; '),
+                    len = allCookieArr.length;
+                for (var i = 0; i < len; i++) {
+                    var itemCookieArr = allCookieArr[i].split('=');
+                    if (itemCookieArr[0] === name) {
+                        callback(itemCookieArr[1]);
+                        return this;
+                    }
+                }
+                callback(null);
+                return this;
+            }
+        }
+
+        // 拖拽
+        var oDiv = document.getElementsByTagName('div')[0];
+        var drag = {
+            init: function(dom) {
+                this.dom = dom;
+                var _this = this;
+                this.bindEvent();
+                manageCookie.getCookie('left', function(data) {
+                    if (data !== null) {
+                        _this.dom.style.left = data;
+                    }
+                }).getCookie('top', function(data) {
+                    if (data !== null) {
+                        _this.dom.style.top = data;
+                    }
+                });
+
+
+            },
+            bindEvent: function() {
+                this.dom.onmousedown = this.mouseDown.bind(this);
+            },
+            mouseDown: function(e) {
+                document.onmousemove = this.mouseMove.bind(this);
+                document.onmouseup = this.mouseUp.bind(this);
+                this.disX = e.clientX - this.dom.offsetLeft,
+                    this.disY = e.clientY - this.dom.offsetTop;
+            },
+            mouseMove: function(e) {
+                this.dom.style.left = this.newLeft = e.clientX - this.disX + 'px';
+                this.dom.style.top = this.newTop = e.clientY - this.disY + 'px';
+            },
+            mouseUp: function() {
+                document.onmousemove = null;
+                document.onmouseup = null;
+                manageCookie.setCookie('left', this.newLeft, '2', 'expires').setCookie('top', this.newTop, '2', 'expires');
+            }
+        }
+        drag.init(oDiv);
+    </script>
+</body>
+
+</html>

@@ -1,1 +1,1 @@
-# cookie
+# 用cookie记录拖拽div的位置
